@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react'
 import {
   Check,
@@ -7,6 +6,7 @@ import {
   ListTodo,
   Pencil,
   Plus,
+  Search,
   Trash2,
 } from 'lucide-react'
 import { useTasks } from '../context/TaskContext'
@@ -18,44 +18,42 @@ function TasksPage({ theme }) {
   const isDark = theme === 'dark'
 
   const [filter, setFilter] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showAddTask, setShowAddTask] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
   const [deletingTask, setDeletingTask] = useState(null)
 
+  // Filter & Search Logic
   const filteredTasks = useMemo(() => {
-    if (filter === 'completed') {
-      return tasks.filter((task) => task.completed)
-    }
+    return tasks.filter((task) => {
+      const matchesFilter =
+        filter === 'all'
+          ? true
+          : filter === 'completed'
+          ? task.completed
+          : !task.completed
 
-    if (filter === 'pending') {
-      return tasks.filter((task) => !task.completed)
-    }
+      const matchesSearch =
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.course.toLowerCase().includes(searchQuery.toLowerCase())
 
-    return tasks
-  }, [tasks, filter])
+      return matchesFilter && matchesSearch
+    })
+  }, [tasks, filter, searchQuery])
 
-  const completedCount = tasks.filter(
-    (task) => task.completed
-  ).length
-
+  const completedCount = tasks.filter((task) => task.completed).length
   const totalCount = tasks.length
-
   const progress =
-    totalCount > 0
-      ? Math.round((completedCount / totalCount) * 100)
-      : 0
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   const headingClass = isDark ? 'text-white' : 'text-slate-900'
   const mutedClass = isDark ? 'text-slate-400' : 'text-slate-600'
-
   const cardClass = isDark
     ? 'border-white/10 bg-white/5'
     : 'border-slate-200 bg-white shadow-sm'
-
   const taskCardClass = isDark
     ? 'border-white/10 bg-white/5 hover:border-violet-400/30 hover:bg-white/10'
     : 'border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/50'
-
   const secondaryButtonClass = isDark
     ? 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
     : 'border-slate-200 bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-700'
@@ -65,14 +63,8 @@ function TasksPage({ theme }) {
       {/* Header */}
       <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-violet-500">
-            Productivity
-          </p>
-
-          <h1 className={`mt-1 text-3xl font-bold ${headingClass}`}>
-            My Tasks
-          </h1>
-
+          <p className="text-sm font-medium text-violet-500">Productivity</p>
+          <h1 className={`mt-1 text-3xl font-bold ${headingClass}`}>My Tasks</h1>
           <p className={`mt-2 ${mutedClass}`}>
             Keep track of your assignments and deadlines.
           </p>
@@ -95,32 +87,23 @@ function TasksPage({ theme }) {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500">
               <ListTodo size={23} />
             </div>
-
             <div>
-              <p className={`text-sm ${mutedClass}`}>
-                Overall Progress
-              </p>
-
+              <p className={`text-sm ${mutedClass}`}>Overall Progress</p>
               <p className={`mt-1 text-xl font-semibold ${headingClass}`}>
                 {completedCount} of {totalCount} tasks completed
               </p>
             </div>
           </div>
-
           <div className="text-left sm:text-right">
-            <p className="text-3xl font-bold text-violet-500">
-              {progress}%
-            </p>
-
-            <p className="text-xs text-slate-500">
-              Keep going!
-            </p>
+            <p className="text-3xl font-bold text-violet-500">{progress}%</p>
+            <p className="text-xs text-slate-500">Keep going!</p>
           </div>
         </div>
-
-        <div className={`mt-6 h-2 overflow-hidden rounded-full ${
-          isDark ? 'bg-slate-800' : 'bg-slate-200'
-        }`}>
+        <div
+          className={`mt-6 h-2 overflow-hidden rounded-full ${
+            isDark ? 'bg-slate-800' : 'bg-slate-200'
+          }`}
+        >
           <div
             className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-400 transition-all duration-500"
             style={{ width: `${progress}%` }}
@@ -128,26 +111,48 @@ function TasksPage({ theme }) {
         </div>
       </div>
 
-      {/* Filter */}
-      <div className="mb-5 flex flex-wrap gap-2">
-        {[
-          { value: 'all', label: 'All Tasks' },
-          { value: 'pending', label: 'Pending' },
-          { value: 'completed', label: 'Completed' },
-        ].map((item) => (
-          <button
-            key={item.value}
-            type="button"
-            onClick={() => setFilter(item.value)}
-            className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
-              filter === item.value
-                ? 'border-violet-600 bg-violet-600 text-white shadow-lg shadow-violet-600/20'
-                : secondaryButtonClass
+      {/* Controls: Search Bar & Filter */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Search Input */}
+        <div className="relative w-full sm:w-72">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search tasks or course..."
+            className={`w-full rounded-xl border pl-10 pr-4 py-2 text-sm outline-none transition ${
+              isDark
+                ? 'border-white/10 bg-slate-900 text-white focus:border-violet-500'
+                : 'border-slate-200 bg-white text-slate-800 focus:border-violet-500'
             }`}
-          >
-            {item.label}
-          </button>
-        ))}
+          />
+        </div>
+
+        {/* Status Filter Buttons */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'all', label: 'All Tasks' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'completed', label: 'Completed' },
+          ].map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => setFilter(item.value)}
+              className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                filter === item.value
+                  ? 'border-violet-600 bg-violet-600 text-white shadow-lg shadow-violet-600/20'
+                  : secondaryButtonClass
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Task List */}
@@ -163,64 +168,44 @@ function TasksPage({ theme }) {
                 : taskCardClass
             }`}
           >
-            {/* Checkbox */}
             <button
               type="button"
               onClick={() => toggleTask(task.id)}
-              aria-label={`Mark ${task.title} as ${
-                task.completed ? 'pending' : 'completed'
-              }`}
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition ${
                 task.completed
                   ? 'border-emerald-500 bg-emerald-500 text-white'
                   : isDark
-                    ? 'border-slate-600 text-slate-400 hover:border-violet-500 hover:text-violet-400'
-                    : 'border-slate-300 text-slate-500 hover:border-violet-500 hover:text-violet-600'
+                  ? 'border-slate-600 text-slate-400 hover:border-violet-500 hover:text-violet-400'
+                  : 'border-slate-300 text-slate-500 hover:border-violet-500 hover:text-violet-600'
               }`}
             >
-              {task.completed ? (
-                <Check size={19} />
-              ) : (
-                <Circle size={18} />
-              )}
+              {task.completed ? <Check size={19} /> : <Circle size={18} />}
             </button>
 
-            {/* Task Info */}
             <div className="min-w-0 flex-1">
               <h2
                 className={`font-medium ${
-                  task.completed
-                    ? 'text-slate-500 line-through'
-                    : headingClass
+                  task.completed ? 'text-slate-500 line-through' : headingClass
                 }`}
               >
                 {task.title}
               </h2>
-
-              <p className={`mt-1 text-sm ${mutedClass}`}>
-                {task.course}
-              </p>
+              <p className={`mt-1 text-sm ${mutedClass}`}>{task.course}</p>
             </div>
 
-            {/* Deadline */}
-            <div className={`flex items-center gap-2 text-sm ${
-              task.completed
-                ? 'text-slate-500'
-                : mutedClass
-            }`}>
+            <div
+              className={`flex items-center gap-2 text-sm ${
+                task.completed ? 'text-slate-500' : mutedClass
+              }`}
+            >
               <Clock3 size={16} />
-
-              <span>
-                {task.due || task.deadline || 'No deadline'}
-              </span>
+              <span>{task.due || task.deadline || 'No deadline'}</span>
             </div>
 
-            {/* Actions and Status */}
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={() => setEditingTask(task)}
-                aria-label={`Edit ${task.title}`}
                 className={`rounded-lg p-2 transition ${
                   isDark
                     ? 'text-slate-500 hover:bg-violet-500/10 hover:text-violet-400'
@@ -233,7 +218,6 @@ function TasksPage({ theme }) {
               <button
                 type="button"
                 onClick={() => setDeletingTask(task)}
-                aria-label={`Delete ${task.title}`}
                 className="rounded-lg p-2 text-slate-500 transition hover:bg-red-500/10 hover:text-red-500"
               >
                 <Trash2 size={16} />
@@ -253,62 +237,49 @@ function TasksPage({ theme }) {
         ))}
 
         {filteredTasks.length === 0 && (
-          <div className={`rounded-2xl border border-dashed p-10 text-center ${cardClass}`}>
-            <p className={mutedClass}>
-              No tasks found.
-            </p>
+          <div
+            className={`rounded-2xl border border-dashed p-10 text-center ${cardClass}`}
+          >
+            <p className={mutedClass}>No tasks found.</p>
           </div>
         )}
       </div>
 
-      {/* Add Task Modal */}
+      {/* Modals */}
       {showAddTask && (
-        <AddTaskModal
-          onClose={() => setShowAddTask(false)}
-        />
+        <AddTaskModal onClose={() => setShowAddTask(false)} />
       )}
-
-      {/* Edit Task Modal */}
       {editingTask && (
         <EditTaskModal
           task={editingTask}
           onClose={() => setEditingTask(null)}
         />
       )}
-
-      {/* Delete Confirmation */}
       {deletingTask && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setDeletingTask(null)
-            }
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setDeletingTask(null)
           }}
         >
-          <div className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${
-            isDark
-              ? 'border-white/10 bg-slate-900 shadow-red-950/30'
-              : 'border-slate-200 bg-white shadow-slate-900/10'
-          }`}>
+          <div
+            className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${
+              isDark
+                ? 'border-white/10 bg-slate-900 shadow-red-950/30'
+                : 'border-slate-200 bg-white shadow-slate-900/10'
+            }`}
+          >
             <div className="mb-5">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
                 <Trash2 size={23} />
               </div>
-
               <h2 className={`text-xl font-semibold ${headingClass}`}>
                 Delete Task?
               </h2>
-
               <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
-                Are you sure you want to delete
-                <span className={`font-medium ${headingClass}`}>
-                  {' '}"{deletingTask.title}"
-                </span>
-                ? This action cannot be undone.
+                Are you sure you want to delete "{deletingTask.title}"?
               </p>
             </div>
-
             <div className="flex justify-end gap-3">
               <button
                 type="button"
@@ -317,7 +288,6 @@ function TasksPage({ theme }) {
               >
                 Cancel
               </button>
-
               <button
                 type="button"
                 onClick={() => {

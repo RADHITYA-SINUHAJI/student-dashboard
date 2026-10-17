@@ -73,13 +73,13 @@ function AppLayout() {
 
         <Routes>
           <Route path="/" element={<Dashboard theme={theme}/>} />
-          <Route path="/courses" element={<Courses />} />
+          <Route path="/courses" element={<Courses theme={theme}/>} />
           <Route
             path="/courses/:code"
-            element={<CourseDetail />}
+            element={<CourseDetail theme={theme} />}
           />
-          <Route path="/schedule" element={<SchedulePage />} />
-          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/schedule" element={<SchedulePage theme={theme}/>} />
+          <Route path="/tasks" element={<TasksPage theme={theme}/>} />
         </Routes>
       </main>
     </div>
