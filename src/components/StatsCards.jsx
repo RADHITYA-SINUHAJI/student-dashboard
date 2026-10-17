@@ -1,3 +1,4 @@
+
 import {
   BookOpen,
   ClipboardList,
@@ -6,7 +7,9 @@ import {
 } from 'lucide-react'
 import { courses, tasks } from '../data/dashboardData'
 
-function StatsCards() {
+function StatsCards({ theme }) {
+  const isDark = theme === 'dark'
+
   const activeCourses = courses.length
   const pendingAssignments = tasks.filter(
     (task) => !task.completed,
@@ -51,27 +54,48 @@ function StatsCards() {
         return (
           <div
             key={stat.title}
-            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/10 hover:shadow-xl hover:shadow-violet-500/10"
+            className={`group relative overflow-hidden rounded-2xl border p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-400/50 hover:shadow-xl hover:shadow-violet-500/10 ${
+              isDark
+                ? 'border-white/10 bg-white/5 hover:bg-white/10'
+                : 'border-slate-200 bg-white shadow-sm hover:bg-violet-50/50'
+            }`}
           >
-            <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-violet-500/10 blur-2xl transition duration-500 group-hover:bg-violet-500/20" />
+            {/* Decorative Glow */}
+            <div
+              className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl transition duration-500 group-hover:bg-violet-500/20 ${
+                isDark ? 'bg-violet-500/10' : 'bg-violet-400/10'
+              }`}
+            />
 
-            <div className="flex items-start justify-between">
+            <div className="relative flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm text-slate-400">
+                <p
+                  className={`text-sm ${
+                    isDark ? 'text-slate-400' : 'text-slate-500'
+                  }`}
+                >
                   {stat.title}
                 </p>
 
-                <h3 className="mt-2 text-3xl font-bold text-white">
+                <h3
+                  className={`mt-2 text-3xl font-bold ${
+                    isDark ? 'text-white' : 'text-slate-900'
+                  }`}
+                >
                   {stat.value}
                 </h3>
 
-                <p className="mt-1 text-xs text-slate-500">
+                <p
+                  className={`mt-1 text-xs ${
+                    isDark ? 'text-slate-500' : 'text-slate-500'
+                  }`}
+                >
                   {stat.label}
                 </p>
               </div>
 
               <div
-                className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg transition duration-300 group-hover:scale-110 group-hover:shadow-xl`}
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg transition duration-300 group-hover:scale-110 group-hover:shadow-xl`}
               >
                 <Icon size={22} className="text-white" />
               </div>

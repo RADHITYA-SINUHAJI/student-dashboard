@@ -1,5 +1,6 @@
+
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, CalendarClock } from 'lucide-react'
 import { useTasks } from '../../context/TaskContext'
 import { courses } from '../../data/dashboardData'
 
@@ -13,6 +14,8 @@ function AddTaskModal({ onClose }) {
     priority: 'medium',
   })
 
+  const [error, setError] = useState('')
+
   const handleChange = (event) => {
     const { name, value } = event.target
 
@@ -20,12 +23,22 @@ function AddTaskModal({ onClose }) {
       ...currentForm,
       [name]: value,
     }))
+
+    if (name === 'deadline' || name === 'title') {
+      setError('')
+    }
   }
 
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    if (!form.title.trim() || !form.deadline) {
+    if (!form.title.trim()) {
+      setError('Task title wajib diisi.')
+      return
+    }
+
+    if (!form.deadline) {
+      setError('Silakan isi tanggal dan waktu Deadline.')
       return
     }
 
@@ -42,14 +55,14 @@ function AddTaskModal({ onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose()
         }
       }}
     >
-      <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl shadow-violet-950/30">
+      <div className="my-auto w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl shadow-violet-950/30">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -60,6 +73,10 @@ function AddTaskModal({ onClose }) {
             <h2 className="mt-1 text-xl font-semibold text-white">
               Add New Task
             </h2>
+
+            <p className="mt-1 text-sm text-slate-400">
+              Fill in your task details below.
+            </p>
           </div>
 
           <button
@@ -80,7 +97,7 @@ function AddTaskModal({ onClose }) {
               htmlFor="task-title"
               className="mb-2 block text-sm font-medium text-slate-300"
             >
-              Task Title
+              Task Title <span className="text-red-400">*</span>
             </label>
 
             <input
@@ -90,8 +107,9 @@ function AddTaskModal({ onClose }) {
               value={form.title}
               onChange={handleChange}
               placeholder="e.g. Complete React Assignment"
-              className="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
+              required
               autoFocus
+              className="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
             />
           </div>
 
@@ -112,7 +130,7 @@ function AddTaskModal({ onClose }) {
               className="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
             >
               {courses.map((course) => (
-                <option key={course.id} value={course.name}>
+                <option key={course.code} value={course.name}>
                   {course.name}
                 </option>
               ))}
@@ -124,9 +142,9 @@ function AddTaskModal({ onClose }) {
             <div>
               <label
                 htmlFor="task-deadline"
-                className="mb-2 block text-sm font-medium text-slate-300"
+                className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-300"
               >
-                Deadline
+                Deadline <span className="text-red-400">*</span>
               </label>
 
               <input
@@ -135,8 +153,25 @@ function AddTaskModal({ onClose }) {
                 type="datetime-local"
                 value={form.deadline}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
+                required
+                aria-describedby="deadline-help"
+                className="w-full min-w-0 rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-white outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
               />
+
+              <div
+                id="deadline-help"
+                className="mt-2 flex items-start gap-2 text-xs leading-5 text-slate-400"
+              >
+                <CalendarClock
+                  size={15}
+                  className="mt-0.5 shrink-0 text-violet-400"
+                />
+
+                <p>
+                  Wajib isi <span className="font-medium text-slate-300">tanggal dan waktu</span> deadline.
+                  Pastikan keduanya sudah dipilih sebelum membuat tugas.
+                </p>
+              </div>
             </div>
 
             <div>
@@ -160,6 +195,16 @@ function AddTaskModal({ onClose }) {
               </select>
             </div>
           </div>
+
+          {/* Validation Message */}
+          {error && (
+            <p
+              role="alert"
+              className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+            >
+              {error}
+            </p>
+          )}
 
           {/* Buttons */}
           <div className="flex justify-end gap-3 pt-2">
